@@ -1,4 +1,11 @@
-import { createRootRoute, createRoute, createRouter, Link, Outlet } from '@tanstack/react-router';
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Link,
+  Outlet,
+  useRouterState,
+} from '@tanstack/react-router';
 import { RunPage } from '../features/analysis/RunPage';
 import { EditorPage } from '../features/editor/EditorPage';
 import { LoggerPage } from '../features/gps-logger/LoggerPage';
@@ -7,13 +14,16 @@ import { DrivePage } from '../features/live/DrivePage';
 import { RecordPage } from '../features/routes/RecordPage';
 import { RoutesPage } from '../features/routes/RoutesPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
+import { InstallButton, PwaBanner } from '../ui/PwaBanner';
 
 const nav =
   'rounded px-3 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800 [&.active]:bg-neutral-800 [&.active]:text-white';
 
 function Layout() {
+  const driving = useRouterState({ select: (s) => s.location.pathname.startsWith('/drive/') });
   return (
     <div className="flex h-full flex-col">
+      <PwaBanner quiet={driving} />
       <nav className="flex items-center gap-1 border-b border-neutral-800 px-3 py-2">
         <span className="mr-3 font-semibold text-amber-400">Lap Timer</span>
         <Link to="/" className={nav} activeOptions={{ exact: true }}>
@@ -25,6 +35,9 @@ function Layout() {
         <Link to="/settings" className={nav}>
           Settings
         </Link>
+        <span className="ml-auto">
+          <InstallButton />
+        </span>
       </nav>
       <main className="min-h-0 flex-1 overflow-y-auto">
         <Outlet />

@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 import { usePending } from '../../app/pending';
 import { db, routesRepo, settingsRepo } from '../../app/services';
+import { requestPersistentStorage } from '../../data/db';
 import { COUNTDOWN_MAX_S, COUNTDOWN_MIN_S } from '../../engine/countdown';
 import { recomputeRoute } from '../../workers/recomputeRoute';
 import { MapView } from '../map/MapView';
@@ -83,6 +84,9 @@ export function EditorPage({ routeId }: { routeId?: string }) {
       } else {
         const route = await routesRepo.create(draft);
         dispatch({ type: 'saved', route });
+        // Ask the browser not to evict our data (R10) once there is something worth keeping.
+        // Chrome decides silently; nothing to show if it says no (Settings explains backups).
+        requestPersistentStorage().catch(() => {});
         void navigate({ to: '/routes/$routeId', params: { routeId: route.id }, replace: true });
       }
     } catch (e) {
