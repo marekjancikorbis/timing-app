@@ -59,12 +59,23 @@ export function DrivePage({ routeId }: { routeId: string }) {
   }
   if (!loaded) return <p className="p-4 text-neutral-400">Loading…</p>;
   return (
-    <DriveView
-      route={loaded.route}
-      session={loaded.session}
-      clock={systemClock}
-      runsRepo={runsRepo}
-      onStartTap={() => unlockAudio()}
-    />
+    <>
+      <DriveView
+        route={loaded.route}
+        session={loaded.session}
+        clock={systemClock}
+        runsRepo={runsRepo}
+        onStartTap={() => unlockAudio()}
+      />
+      <p className="mx-auto max-w-xl px-4 pb-4">
+        <Link
+          to="/routes/$routeId/history"
+          params={{ routeId }}
+          className="text-sm text-amber-400 underline"
+        >
+          Full history and analysis
+        </Link>
+      </p>
+    </>
   );
 }

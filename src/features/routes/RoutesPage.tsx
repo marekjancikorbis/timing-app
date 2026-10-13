@@ -44,6 +44,9 @@ export function RoutesPage() {
           onRename={(id, name) => void routesRepo.rename(id, name)}
           onDelete={(id) => void routesRepo.remove(id)}
           onDrive={(id) => void navigate({ to: '/drive/$routeId', params: { routeId: id } })}
+          onHistory={(id) =>
+            void navigate({ to: '/routes/$routeId/history', params: { routeId: id } })
+          }
         />
       )}
     </div>

@@ -1,6 +1,7 @@
 import { createRootRoute, createRoute, createRouter, Link, Outlet } from '@tanstack/react-router';
 import { EditorPage } from '../features/editor/EditorPage';
 import { LoggerPage } from '../features/gps-logger/LoggerPage';
+import { HistoryPage } from '../features/history/HistoryPage';
 import { DrivePage } from '../features/live/DrivePage';
 import { RecordPage } from '../features/routes/RecordPage';
 import { RoutesPage } from '../features/routes/RoutesPage';
@@ -59,13 +60,21 @@ const driveRoute = createRoute({
     return <DrivePage key={routeId} routeId={routeId} />;
   },
 });
+const historyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/routes/$routeId/history',
+  component: function History() {
+    const { routeId } = historyRoute.useParams();
+    return <HistoryPage key={routeId} routeId={routeId} />;
+  },
+});
 const rest = [
   createRoute({ getParentRoute: () => rootRoute, path: '/record', component: RecordPage }),
   createRoute({ getParentRoute: () => rootRoute, path: '/logger', component: LoggerPage }),
   createRoute({ getParentRoute: () => rootRoute, path: '/settings', component: SettingsPage }),
 ];
 
-const routeTree = rootRoute.addChildren([...routes, editRoute, driveRoute, ...rest]);
+const routeTree = rootRoute.addChildren([...routes, editRoute, driveRoute, historyRoute, ...rest]);
 export const router = createRouter({ routeTree });
 
 declare module '@tanstack/react-router' {

@@ -9,6 +9,8 @@ interface Props {
   onDelete: (id: string) => void;
   /** Start timing on this route. */
   onDrive?: (id: string) => void;
+  /** Open the route's history. */
+  onHistory?: (id: string) => void;
   units?: 'metric' | 'imperial';
 }
 
@@ -19,6 +21,7 @@ export function RouteList({
   onRename,
   onDelete,
   onDrive,
+  onHistory,
   units = 'metric',
 }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
@@ -73,6 +76,15 @@ export function RouteList({
                   className="rounded bg-amber-400 px-3 py-1 text-sm font-medium text-neutral-950"
                 >
                   Drive
+                </button>
+              )}
+              {onHistory && (
+                <button
+                  type="button"
+                  onClick={() => onHistory(r.id)}
+                  className="rounded border border-neutral-700 px-3 py-1 text-sm hover:bg-neutral-800"
+                >
+                  History
                 </button>
               )}
               <button
