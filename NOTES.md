@@ -3,7 +3,7 @@
 Working notes alongside `lap-timer-development-plan.md`: what's built, where the code differs from
 the plan, and the measured gaps you should know about.
 
-## Status (2026-10-12)
+## Status (2026-10-13)
 
 | Phase | State |
 |---|---|
@@ -11,11 +11,21 @@ the plan, and the measured gaps you should know about.
 | Phase 1: timing engine + test harness | **built and tested** (`src/engine`, `src/gps/simulator.ts`, `tests/`) |
 | Phase 2: routes & map | **built and tested**: app shell, Dexie, settings, map, route editor, GPX, record-a-route, recompute worker |
 | Phase 3: arm, countdown & live timing | **built and tested**: drive screen (arm → countdown → live → result → history), beeps, voice, vibration. **Field test pending (yours).** |
-| Phase 4+ | not started (history & analysis are next) |
+| Phase 4: history & analysis | **built and tested**: history per session/start mode, run detail, charts, coloured trace, reference choice, compare, GPX/CSV export, backup/restore |
+| Phase 5+ | not started (PWA hardening & polish is next) |
 
 Checks: `npm run typecheck && npm test && npm run lint`, `npm run coverage` (pure logic > 90%),
 and `npm run e2e` (Playwright smoke test; needs `npx playwright install chromium` once).
 Run the app with `npm run dev`. Geolocation needs HTTPS or `localhost`.
+
+## Deploys
+
+Firebase Hosting, project `timing-app-mj`: `npm run build && npx firebase deploy --only hosting`.
+
+| Date | Phase | URL |
+|---|---|---|
+| 2026-10-13 | Phases 0–3 | https://timing-app-mj.web.app |
+| 2026-10-13 | Phase 4 (commit ffdf96b) | https://timing-app-mj.web.app |
 
 ## Differences from the plan
 
@@ -89,6 +99,30 @@ real tracker with a fake clock, pushed GPS fixes and fake-indexeddb; the drive s
 component tests on top of a real session; e2e/drive.spec.ts does arm → countdown → GPS → saved →
 history with Playwright's fake clock. Not covered automatically: real sound output, vibration,
 the wake lock, and behaviour with the screen locked. Those need the field test.
+
+### Phase 4
+
+18. **Compare = run detail with `?vs=`.** "Compare two runs" opens `/runs/<a>?vs=<b>`: the sector table
+    puts both side by side, with the gap chart, both speed traces and the map. One page instead of
+    two.
+19. **Reference choice is a new table (schema v2, `referenceChoices`).** Per route and start mode:
+    best ever (default), best this session, or a pinned run. A pinned run stays the reference even
+    when a faster run comes in; deleting it falls back to "best". Set it on the history page or with
+    "Pin as live reference" on a run.
+20. **Trace colours show where time is won or lost**, not the cumulative gap: each segment's change
+    in gap per 100 m (green = gaining, red = losing). The cumulative gap is the chart above it.
+    Without a reference, the trace is coloured by speed.
+21. **Backups are gzip-compressed JSON (fflate)**, `laptimer-backup-<date>.json.gz`; restore also
+    accepts plain JSON. Zod validates the file before anything is written; restore can merge (by
+    id) or replace, in one transaction. The OpenRouteService key is never written to a backup.
+22. **No TanStack Table.** The history and sector tables are plain tables; there is no sorting or
+    filtering need yet.
+
+Testing (Phase 4): history model, analysis maths, exporters (GPX round-trips through the
+importer) and backup (round trip into an empty DB, merge vs replace, bad files) are unit-tested;
+HistoryView and RunView have component tests; e2e covers drive → history → run detail → pin as
+reference → arm screen, and backup → delete → restore. Charts (uPlot) and the trace map are thin
+adapters, checked only by the e2e (they render without errors).
 
 ## Measured accuracy (simulator, 1 Hz, seeded; `tests/accuracy.test.ts`)
 
