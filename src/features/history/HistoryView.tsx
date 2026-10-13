@@ -82,7 +82,7 @@ export function HistoryView({
   const hasStanding = runs.some((r) => r.startMode === 'standing');
   const hasFlying = runs.some((r) => r.startMode === 'flying');
   const initial: StartMode =
-    hasFlying && hasStanding ? route.defaultStartMode : hasStanding ? 'standing' : 'flying';
+    hasFlying === hasStanding ? route.defaultStartMode : hasStanding ? 'standing' : 'flying';
   const [mode, setMode] = useState<StartMode>(initial);
   const [picked, setPicked] = useState<string[]>([]);
   const [confirming, setConfirming] = useState<string | null>(null);

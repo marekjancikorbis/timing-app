@@ -1,10 +1,11 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { routesRepo, runsRepo } from '../../app/services';
 import { HistoryView } from './HistoryView';
 
 /** Thin shell: loads the route's runs and sessions live from Dexie. */
 export function HistoryPage({ routeId }: { routeId: string }) {
+  const navigate = useNavigate();
   const data = useLiveQuery(async () => {
     const route = await routesRepo.get(routeId);
     if (!route) return 'missing' as const;
@@ -51,6 +52,10 @@ export function HistoryPage({ routeId }: { routeId: string }) {
         route={route}
         runs={runs}
         sessions={sessions}
+        onOpenRun={(id) => void navigate({ to: '/runs/$runId', params: { runId: id } })}
+        onCompare={(a, b) =>
+          void navigate({ to: '/runs/$runId', params: { runId: a }, search: { vs: b } })
+        }
         onDeleteRun={(id) => void runsRepo.remove(id)}
         onSessionNotes={(id, notes) => void runsRepo.setSessionNotes(id, notes)}
       />

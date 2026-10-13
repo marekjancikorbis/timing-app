@@ -89,4 +89,20 @@ test('standing start: arm, count down, drive, and the run is saved to history', 
   await page.clock.resume();
   await page.reload();
   await expect(page.getByRole('list', { name: 'History' }).getByRole('listitem')).toHaveCount(1);
+
+  // Full history: the run is the best standing run; its detail page shows sectors and charts.
+  await page.getByRole('link', { name: 'Full history and analysis' }).click();
+  await expect(page).toHaveURL(/\/history$/);
+  await expect(page.getByRole('button', { name: 'Standing' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(page.getByTestId('best')).toHaveText(/^0:3\d\.\d\d$/);
+  const best = (await page.getByTestId('best').textContent()) ?? '';
+  await expect(page.getByTestId('run-row')).toHaveCount(1);
+  await page.getByRole('button', { name: best, exact: true }).click();
+  await expect(page).toHaveURL(/\/runs\//);
+  await expect(page.getByTestId('run-time')).toHaveText(best);
+  await expect(page.getByTestId('sector-row')).toHaveCount(10); // 1 km in 100 m sectors
+  await expect(page.getByRole('img', { name: 'km/h' })).toBeVisible();
 });

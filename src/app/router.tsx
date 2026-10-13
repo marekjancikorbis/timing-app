@@ -1,4 +1,5 @@
 import { createRootRoute, createRoute, createRouter, Link, Outlet } from '@tanstack/react-router';
+import { RunPage } from '../features/analysis/RunPage';
 import { EditorPage } from '../features/editor/EditorPage';
 import { LoggerPage } from '../features/gps-logger/LoggerPage';
 import { HistoryPage } from '../features/history/HistoryPage';
@@ -68,13 +69,31 @@ const historyRoute = createRoute({
     return <HistoryPage key={routeId} routeId={routeId} />;
   },
 });
+const runRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/runs/$runId',
+  validateSearch: (search: Record<string, unknown>): { vs?: string } =>
+    typeof search.vs === 'string' ? { vs: search.vs } : {},
+  component: function RunDetail() {
+    const { runId } = runRoute.useParams();
+    const { vs } = runRoute.useSearch();
+    return <RunPage key={runId} runId={runId} vs={vs} />;
+  },
+});
 const rest = [
   createRoute({ getParentRoute: () => rootRoute, path: '/record', component: RecordPage }),
   createRoute({ getParentRoute: () => rootRoute, path: '/logger', component: LoggerPage }),
   createRoute({ getParentRoute: () => rootRoute, path: '/settings', component: SettingsPage }),
 ];
 
-const routeTree = rootRoute.addChildren([...routes, editRoute, driveRoute, historyRoute, ...rest]);
+const routeTree = rootRoute.addChildren([
+  ...routes,
+  editRoute,
+  driveRoute,
+  historyRoute,
+  runRoute,
+  ...rest,
+]);
 export const router = createRouter({ routeTree });
 
 declare module '@tanstack/react-router' {

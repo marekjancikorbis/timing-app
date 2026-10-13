@@ -68,6 +68,22 @@ describe('HistoryView', () => {
     expect(screen.getByText('Dry')).toBeTruthy();
   });
 
+  it('starts on the route default start mode when there are no runs', () => {
+    render(
+      <HistoryView
+        route={route}
+        runs={[]}
+        sessions={[]}
+        onDeleteRun={vi.fn()}
+        onSessionNotes={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Standing' }).getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+    expect(screen.getByText('No standing-start runs on this route yet.')).toBeTruthy();
+  });
+
   it('switches start mode', () => {
     setup();
     fireEvent.click(screen.getByRole('button', { name: 'Flying' }));
