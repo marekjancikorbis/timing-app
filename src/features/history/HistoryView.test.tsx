@@ -119,6 +119,27 @@ describe('HistoryView', () => {
     expect(p.onDeleteRun).toHaveBeenCalledWith('r1');
   });
 
+  it('chooses the live reference and marks a pinned run', () => {
+    const onReferenceKind = vi.fn();
+    render(
+      <HistoryView
+        route={route}
+        runs={runs}
+        sessions={sessions}
+        reference={{ standing: runs[0] }}
+        referenceKind={{ standing: 'run' }}
+        onReferenceKind={onReferenceKind}
+        onDeleteRun={vi.fn()}
+        onSessionNotes={vi.fn()}
+      />,
+    );
+    const select = screen.getByLabelText('Live reference') as HTMLSelectElement;
+    expect(select.value).toBe('run');
+    expect(screen.getByText('pinned')).toBeTruthy();
+    fireEvent.change(select, { target: { value: 'session-best' } });
+    expect(onReferenceKind).toHaveBeenCalledWith('standing', 'session-best');
+  });
+
   it('edits session notes', () => {
     const p = setup();
     fireEvent.click(screen.getByText('Dry'));

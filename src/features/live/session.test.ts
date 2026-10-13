@@ -178,6 +178,41 @@ describe('timing session', () => {
     expect(await runs.sessions(stage.id)).toHaveLength(2); // one per session object
   });
 
+  it('keeps a pinned reference even when a faster run comes in', async () => {
+    const first = await setup(stage);
+    await first.session.arm('flying', 5);
+    play(first, flying(25));
+    await first.session.flush();
+    const pinned = first.session.getState().saved[0];
+    first.session.dispose();
+    await runs.setReferenceChoice(stage.id, 'flying', 'run', pinned?.id);
+
+    const second = await setup(stage);
+    expect(second.session.getState().referenceKind.flying).toBe('run');
+    expect(second.session.getState().reference.flying?.id).toBe(pinned?.id);
+    await second.session.arm('flying', 5);
+    play(second, flying(40));
+    await second.session.flush();
+    expect(second.session.getState().reference.flying?.id).toBe(pinned?.id);
+  });
+
+  it("session best: starts without a reference, then chases this session's best", async () => {
+    const first = await setup(stage);
+    await first.session.arm('flying', 5);
+    play(first, flying(40));
+    await first.session.flush();
+    first.session.dispose();
+    await runs.setReferenceChoice(stage.id, 'flying', 'session-best');
+
+    const second = await setup(stage);
+    expect(second.session.getState().reference.flying).toBeUndefined();
+    await second.session.arm('flying', 5);
+    play(second, flying(25));
+    await second.session.flush();
+    const st = second.session.getState();
+    expect(st.reference.flying?.id).toBe(st.saved[0]?.id);
+  });
+
   it('saves every lap of a circuit with its lap number', async () => {
     const circuit = await createRoutesRepo(db).create({
       name: 'Oval',

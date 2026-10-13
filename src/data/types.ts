@@ -58,6 +58,22 @@ export interface Run {
   traceId: string;
 }
 
+/**
+ * What the live gap is measured against, per route and start mode (§3.2 should-have):
+ * the best valid run ever, the best of the current session, or one pinned run.
+ */
+export type ReferenceKind = 'best' | 'session-best' | 'run';
+
+export interface ReferenceChoice {
+  /** `${routeId}|${startMode}` */
+  id: string;
+  routeId: string;
+  startMode: StartMode;
+  kind: ReferenceKind;
+  /** The pinned run, when kind is 'run'. */
+  runId?: string;
+}
+
 /** Large and rarely needed, so stored apart from runs. */
 export interface Trace {
   id: string;

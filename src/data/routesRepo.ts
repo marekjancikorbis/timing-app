@@ -52,11 +52,13 @@ export function createRoutesRepo(db: LapTimerDb, deps: RepoDeps = {}) {
 
     /** Deletes the route with all its sessions, runs and traces. */
     async remove(id: string): Promise<void> {
-      await db.transaction('rw', [db.routes, db.sessions, db.runs, db.traces], async () => {
+      const tables = [db.routes, db.sessions, db.runs, db.traces, db.referenceChoices];
+      await db.transaction('rw', tables, async () => {
         const runs = await db.runs.where('routeId').equals(id).toArray();
         await db.traces.bulkDelete(runs.map((r) => r.traceId));
         await db.runs.where('routeId').equals(id).delete();
         await db.sessions.where('routeId').equals(id).delete();
+        await db.referenceChoices.where('routeId').equals(id).delete();
         await db.routes.delete(id);
       });
     },

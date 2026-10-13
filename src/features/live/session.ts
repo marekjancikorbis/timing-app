@@ -4,7 +4,7 @@
 
 import { prepareStored } from '../../data/routeModel';
 import type { RunsRepo } from '../../data/runsRepo';
-import type { Route, Run, Settings } from '../../data/types';
+import type { ReferenceKind, Route, Run, Settings } from '../../data/types';
 import type { Clock } from '../../engine/clock';
 import type { Profile } from '../../engine/delta';
 import { GapSmoother } from '../../engine/delta';
@@ -36,6 +36,8 @@ export interface SessionState {
   saveError: string | null;
   /** Reference run per start mode (what the gap is measured against). */
   reference: Partial<Record<StartMode, Run>>;
+  /** How each reference was chosen (§3.2): best ever, best this session, or a pinned run. */
+  referenceKind: Record<StartMode, ReferenceKind>;
 }
 
 export interface SessionDeps {
@@ -63,11 +65,13 @@ export interface TimingSession {
   readonly tracker: Tracker;
 }
 
-/** Load the best valid run per start mode, with its profile, and history bests per sector. */
+/** Load the chosen reference run per start mode, with its profile, and history bests per sector. */
 async function loadReferences(route: Route, runs: RunsRepo) {
   const refs: Partial<Record<StartMode, { run: Run; profile: Profile }>> = {};
+  const kinds: Record<StartMode, ReferenceKind> = { flying: 'best', standing: 'best' };
   for (const mode of ['flying', 'standing'] as const) {
-    const run = await runs.best(route.id, mode);
+    kinds[mode] = (await runs.referenceChoice(route.id, mode)).kind;
+    const run = await runs.resolveReference(route.id, mode);
     const trace = run && (await runs.getTrace(run.traceId));
     if (run && trace) refs[mode] = { run, profile: trace.profile };
   }
@@ -79,14 +83,14 @@ async function loadReferences(route: Route, runs: RunsRepo) {
       if (b[i] === undefined || ms < (b[i] as number)) b[i] = ms;
     });
   }
-  return { refs, bests };
+  return { refs, bests, kinds };
 }
 
 export async function createTimingSession(deps: SessionDeps): Promise<TimingSession> {
   const { route, gps, clock, runsRepo, settings } = deps;
   const feedback = deps.feedback ?? silentFeedback;
   const prepared = prepareStored(route);
-  const { refs, bests } = await loadReferences(route, runsRepo);
+  const { refs, bests, kinds } = await loadReferences(route, runsRepo);
 
   const profiles: Partial<Record<StartMode, Profile>> = {};
   const ctx: LiveContext = {
@@ -114,6 +118,7 @@ export async function createTimingSession(deps: SessionDeps): Promise<TimingSess
     saved: [],
     saveError: null,
     reference: { flying: refs.flying?.run, standing: refs.standing?.run },
+    referenceKind: kinds,
   };
   let sessionId: string | null = null;
   let saving: Promise<void> = Promise.resolve();
@@ -131,8 +136,11 @@ export async function createTimingSession(deps: SessionDeps): Promise<TimingSess
         const saved = await runsRepo.save(run, route.id, sessionId);
         const reference = { ...state.reference };
         const current = reference[run.startMode];
-        // A faster valid run becomes the reference for the next one (§4.6 default).
-        if (saved.valid && !saved.jumpStart && (!current || saved.totalMs < current.totalMs)) {
+        // A faster valid run becomes the reference for the next one (§4.6 default), unless the
+        // driver pinned a run to chase.
+        const pinned = kinds[run.startMode] === 'run' && current !== undefined;
+        const faster = !current || saved.totalMs < current.totalMs;
+        if (saved.valid && !saved.jumpStart && !pinned && faster) {
           reference[run.startMode] = saved;
           profiles[run.startMode] = run.profile;
           ctx.refSectors[run.startMode] = saved.sectorMs;

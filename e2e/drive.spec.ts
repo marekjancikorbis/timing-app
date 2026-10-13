@@ -32,6 +32,7 @@ async function fix(page: Page, x: number, spd: number) {
 }
 
 test('standing start: arm, count down, drive, and the run is saved to history', async ({ page }) => {
+  test.setTimeout(90_000); // the whole flow, from import to history and pinning
   await page.clock.install({ time: new Date('2026-10-12T10:00:00Z') });
 
   // A saved route to drive.
@@ -105,4 +106,13 @@ test('standing start: arm, count down, drive, and the run is saved to history', 
   await expect(page.getByTestId('run-time')).toHaveText(best);
   await expect(page.getByTestId('sector-row')).toHaveCount(10); // 1 km in 100 m sectors
   await expect(page.getByRole('img', { name: 'km/h' })).toBeVisible();
+
+  // Pin it as the live reference: the drive screen measures against it.
+  await page.getByRole('button', { name: 'Pin as live reference' }).click();
+  await expect(page.getByRole('button', { name: /Pinned as live reference/ })).toBeVisible();
+  await page.getByRole('link', { name: 'History' }).click();
+  await expect(page.getByLabel('Live reference')).toHaveValue('run');
+  await page.getByRole('link', { name: 'Drive' }).click();
+  await page.getByRole('button', { name: 'Standing start' }).click();
+  await expect(page.getByTestId('reference')).toHaveText(`Gap against the pinned run: ${best}`);
 });

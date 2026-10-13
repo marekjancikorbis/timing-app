@@ -99,6 +99,7 @@ function ArmScreen({
             </select>
           </label>
         )}
+        <ReferenceLine s={s} mode={mode} />
         <button
           type="button"
           onClick={() => void session.arm(mode, countdownS)}
@@ -153,6 +154,23 @@ function ArmScreen({
         Disarm
       </button>
     </section>
+  );
+}
+
+const KIND_LABEL = { best: 'best run', 'session-best': 'best this session', run: 'pinned run' };
+
+/** What the gap will be measured against for this start mode. */
+function ReferenceLine({ s, mode }: { s: SessionState; mode: StartMode }) {
+  const ref = s.reference[mode];
+  const kind = s.referenceKind[mode];
+  return (
+    <p className="text-neutral-400" data-testid="reference">
+      {ref
+        ? `Gap against the ${KIND_LABEL[kind]}: ${formatTime(ref.totalMs)}`
+        : kind === 'session-best'
+          ? 'Gap against the best run this session (none yet).'
+          : `No ${mode}-start reference yet: this run sets one.`}
+    </p>
   );
 }
 

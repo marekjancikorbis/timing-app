@@ -21,12 +21,14 @@ export function RunPage({ runId, vs }: { runId: string; vs?: string }) {
         : vs
           ? candidates.find((c) => c.id === vs)
           : defaultReference(run, candidates);
-    const [trace, refTrace] = await Promise.all([
+    const [trace, refTrace, choice] = await Promise.all([
       runsRepo.getTrace(run.traceId),
       refRun ? runsRepo.getTrace(refRun.traceId) : undefined,
+      runsRepo.referenceChoice(route.id, run.startMode),
     ]);
     return {
       route,
+      pinned: choice.kind === 'run' && choice.runId === run.id,
       candidates,
       current: { run, trace },
       reference: refRun ? { run: refRun, trace: refTrace } : undefined,
@@ -45,7 +47,8 @@ export function RunPage({ runId, vs }: { runId: string; vs?: string }) {
     );
   }
 
-  const { route } = data;
+  const { route, pinned } = data;
+  const { run } = data.current;
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">
       <header className="flex flex-wrap items-center gap-3">
@@ -63,6 +66,29 @@ export function RunPage({ runId, vs }: { runId: string; vs?: string }) {
         current={data.current}
         reference={data.reference}
         candidates={data.candidates}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            {pinned ? (
+              <button
+                type="button"
+                onClick={() => void runsRepo.setReferenceChoice(route.id, run.startMode, 'best')}
+                className="rounded border border-amber-400 px-3 py-2 text-amber-400"
+              >
+                Pinned as live reference · unpin
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() =>
+                  void runsRepo.setReferenceChoice(route.id, run.startMode, 'run', run.id)
+                }
+                className="rounded border border-neutral-700 px-3 py-2 hover:bg-neutral-800"
+              >
+                Pin as live reference
+              </button>
+            )}
+          </div>
+        }
         onPickReference={(id) =>
           void navigate({
             to: '/runs/$runId',

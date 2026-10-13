@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Route, Run, Session } from '../../data/types';
+import type { ReferenceKind, Route, Run, Session } from '../../data/types';
 import type { SectorColor } from '../../engine/delta';
 import type { StartMode } from '../../engine/types';
 import { formatGap, formatTime } from '../live/liveModel';
@@ -23,6 +23,9 @@ interface Props {
   sessions: Session[];
   /** Reference run per start mode; defaults to the best run. */
   reference?: Partial<Record<StartMode, Run>>;
+  /** What the live gap is measured against, per start mode. */
+  referenceKind?: Partial<Record<StartMode, ReferenceKind>>;
+  onReferenceKind?: (mode: StartMode, kind: 'best' | 'session-best') => void;
   onOpenRun?: (id: string) => void;
   onCompare?: (a: string, b: string) => void;
   onDeleteRun: (id: string) => void;
@@ -74,6 +77,8 @@ export function HistoryView({
   runs,
   sessions,
   reference,
+  referenceKind,
+  onReferenceKind,
   onOpenRun,
   onCompare,
   onDeleteRun,
@@ -155,6 +160,30 @@ export function HistoryView({
         </div>
       </dl>
 
+      {onReferenceKind && (
+        <label className="flex flex-wrap items-center gap-2">
+          <span>Live gap against</span>
+          <select
+            aria-label="Live reference"
+            value={referenceKind?.[mode] ?? 'best'}
+            onChange={(e) => {
+              const kind = e.target.value;
+              if (kind === 'best' || kind === 'session-best') onReferenceKind(mode, kind);
+            }}
+            className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1"
+          >
+            <option value="best">Best run ever</option>
+            <option value="session-best">Best run this session</option>
+            {referenceKind?.[mode] === 'run' && (
+              <option value="run">
+                Pinned run {reference?.[mode] ? formatTime(reference[mode].totalMs) : ''}
+              </option>
+            )}
+          </select>
+          <span className="text-xs text-neutral-400">Pin a specific run from its detail page.</span>
+        </label>
+      )}
+
       {groups.length === 0 ? (
         <p className="text-neutral-400">No {mode}-start runs on this route yet.</p>
       ) : (
@@ -217,7 +246,9 @@ export function HistoryView({
                             {formatTime(r.totalMs)}
                           </button>
                           {r.id === ref?.id && (
-                            <span className="ml-1 text-xs text-amber-400">ref</span>
+                            <span className="ml-1 text-xs text-amber-400">
+                              {referenceKind?.[mode] === 'run' ? 'pinned' : 'ref'}
+                            </span>
                           )}
                           {r.lapNumber > 1 && (
                             <span className="ml-1 text-xs text-neutral-400">L{r.lapNumber}</span>

@@ -202,6 +202,40 @@ describe('runs repository', () => {
     expect(await db.traces.count()).toBe(0);
     await repo.remove('missing'); // no-op
   });
+
+  it('picks the live reference: best by default, session best, or a pinned run', async () => {
+    const repo = createRunsRepo(db, deps);
+    const s = await repo.startSession('r');
+    const fast = await repo.save(result({ totalMs: 50_000 }), 'r', s.id);
+    const slow = await repo.save(result({ totalMs: 70_000 }), 'r', s.id);
+    expect(await repo.referenceChoice('r', 'flying')).toEqual({ kind: 'best' });
+    expect((await repo.resolveReference('r', 'flying'))?.id).toBe(fast.id);
+
+    await repo.setReferenceChoice('r', 'flying', 'session-best');
+    expect(await repo.resolveReference('r', 'flying')).toBeUndefined();
+
+    await repo.setReferenceChoice('r', 'flying', 'run', slow.id);
+    expect(await repo.referenceChoice('r', 'flying')).toEqual({ kind: 'run', runId: slow.id });
+    expect((await repo.resolveReference('r', 'flying'))?.id).toBe(slow.id);
+    // per start mode
+    expect(await repo.referenceChoice('r', 'standing')).toEqual({ kind: 'best' });
+    await expect(repo.setReferenceChoice('r', 'flying', 'run')).rejects.toThrow();
+
+    // Deleting the pinned run falls back to the best run.
+    await repo.remove(slow.id);
+    expect(await repo.referenceChoice('r', 'flying')).toEqual({ kind: 'best' });
+    expect((await repo.resolveReference('r', 'flying'))?.id).toBe(fast.id);
+  });
+});
+
+describe('reference choices and routes', () => {
+  it('are deleted with their route', async () => {
+    const route = await createRoutesRepo(db, deps).create(stageDraft);
+    const repo = createRunsRepo(db, deps);
+    await repo.setReferenceChoice(route.id, 'standing', 'session-best');
+    await createRoutesRepo(db, deps).remove(route.id);
+    expect(await db.referenceChoices.count()).toBe(0);
+  });
 });
 
 describe('settings repository', () => {

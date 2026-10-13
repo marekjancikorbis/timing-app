@@ -3,7 +3,9 @@ import type { RunResult } from '../engine/tracker';
 import type { StartMode } from '../engine/types';
 import type { LapTimerDb } from './db';
 import type { RepoDeps } from './routesRepo';
-import type { Run, Session, Trace } from './types';
+import type { ReferenceChoice, ReferenceKind, Run, Session, Trace } from './types';
+
+export const referenceKey = (routeId: string, mode: StartMode) => `${routeId}|${mode}`;
 
 export interface SectorUpdate {
   id: string;
@@ -66,6 +68,46 @@ export function createRunsRepo(db: LapTimerDb, deps: RepoDeps = {}) {
         .first();
     },
 
+    /** The live reference picked for a route and start mode; 'best' when none was picked. */
+    async referenceChoice(
+      routeId: string,
+      mode: StartMode,
+    ): Promise<{ kind: ReferenceKind; runId?: string }> {
+      const c = await db.referenceChoices.get(referenceKey(routeId, mode));
+      return c ? { kind: c.kind, ...(c.runId ? { runId: c.runId } : {}) } : { kind: 'best' };
+    },
+
+    async setReferenceChoice(
+      routeId: string,
+      mode: StartMode,
+      kind: ReferenceKind,
+      runId?: string,
+    ): Promise<void> {
+      if (kind === 'run' && !runId) throw new Error('A pinned reference needs a run');
+      const choice: ReferenceChoice = {
+        id: referenceKey(routeId, mode),
+        routeId,
+        startMode: mode,
+        kind,
+      };
+      if (kind === 'run') choice.runId = runId;
+      await db.referenceChoices.put(choice);
+    },
+
+    /**
+     * The run the live gap starts against. A new session has no session best yet, and a pinned run
+     * that was deleted falls back to the best run.
+     */
+    async resolveReference(routeId: string, mode: StartMode): Promise<Run | undefined> {
+      const choice = await this.referenceChoice(routeId, mode);
+      if (choice.kind === 'session-best') return undefined;
+      if (choice.kind === 'run' && choice.runId) {
+        const pinned = await db.runs.get(choice.runId);
+        if (pinned) return pinned;
+      }
+      return this.best(routeId, mode);
+    },
+
     /** Write recomputed sector times after an interval change. */
     async applySectors(updates: readonly SectorUpdate[]): Promise<void> {
       await db.transaction('rw', db.runs, async () => {
@@ -76,9 +118,11 @@ export function createRunsRepo(db: LapTimerDb, deps: RepoDeps = {}) {
     },
 
     async remove(id: string): Promise<void> {
-      await db.transaction('rw', db.runs, db.traces, async () => {
+      await db.transaction('rw', db.runs, db.traces, db.referenceChoices, async () => {
         const run = await db.runs.get(id);
         if (!run) return;
+        // A pinned reference that is deleted goes back to 'best'.
+        await db.referenceChoices.filter((c) => c.runId === id).delete();
         await db.traces.delete(run.traceId);
         await db.runs.delete(id);
       });

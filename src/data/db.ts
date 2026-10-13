@@ -1,7 +1,7 @@
 // Dexie schema (§4.9). IndexedDB is the source of truth on the device.
 
 import Dexie, { type EntityTable } from 'dexie';
-import type { GpsLog, Route, Run, Session, Settings, Trace } from './types';
+import type { GpsLog, ReferenceChoice, Route, Run, Session, Settings, Trace } from './types';
 
 export interface SettingsRow extends Settings {
   key: 'app';
@@ -14,6 +14,7 @@ export type LapTimerDb = Dexie & {
   traces: EntityTable<Trace, 'id'>;
   settings: EntityTable<SettingsRow, 'key'>;
   gpsLogs: EntityTable<GpsLog, 'id'>;
+  referenceChoices: EntityTable<ReferenceChoice, 'id'>;
 };
 
 /**
@@ -30,6 +31,19 @@ export const SCHEMA_VERSIONS: { version: number; stores: Record<string, string> 
       traces: 'id',
       settings: 'key',
       gpsLogs: 'id, startedAt',
+    },
+  },
+  {
+    // v2: the live reference picked per route and start mode. New table only: nothing to migrate.
+    version: 2,
+    stores: {
+      routes: 'id, updatedAt',
+      sessions: 'id, routeId, startedAt',
+      runs: 'id, sessionId, routeId, [routeId+startMode+totalMs], [routeId+startTime]',
+      traces: 'id',
+      settings: 'key',
+      gpsLogs: 'id, startedAt',
+      referenceChoices: 'id, routeId',
     },
   },
 ];

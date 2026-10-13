@@ -9,11 +9,22 @@ export function HistoryPage({ routeId }: { routeId: string }) {
   const data = useLiveQuery(async () => {
     const route = await routesRepo.get(routeId);
     if (!route) return 'missing' as const;
-    const [runs, sessions] = await Promise.all([
+    const [runs, sessions, flying, standing] = await Promise.all([
       runsRepo.listByRoute(routeId),
       runsRepo.sessions(routeId),
+      runsRepo.referenceChoice(routeId, 'flying'),
+      runsRepo.referenceChoice(routeId, 'standing'),
     ]);
-    return { route, runs, sessions };
+    // A pinned run is the reference; otherwise the view uses the best run.
+    const pinned = (c: { kind: string; runId?: string }) =>
+      c.kind === 'run' ? runs.find((r) => r.id === c.runId) : undefined;
+    return {
+      route,
+      runs,
+      sessions,
+      referenceKind: { flying: flying.kind, standing: standing.kind },
+      reference: { flying: pinned(flying), standing: pinned(standing) },
+    };
   }, [routeId]);
 
   if (data === undefined) return <p className="p-4 text-neutral-400">Loading…</p>;
@@ -28,7 +39,7 @@ export function HistoryPage({ routeId }: { routeId: string }) {
     );
   }
 
-  const { route, runs, sessions } = data;
+  const { route, runs, sessions, reference, referenceKind } = data;
   return (
     <div className="mx-auto max-w-5xl space-y-4 p-4">
       <header className="flex flex-wrap items-center gap-3">
@@ -52,6 +63,9 @@ export function HistoryPage({ routeId }: { routeId: string }) {
         route={route}
         runs={runs}
         sessions={sessions}
+        reference={reference}
+        referenceKind={referenceKind}
+        onReferenceKind={(mode, kind) => void runsRepo.setReferenceChoice(routeId, mode, kind)}
         onOpenRun={(id) => void navigate({ to: '/runs/$runId', params: { runId: id } })}
         onCompare={(a, b) =>
           void navigate({ to: '/runs/$runId', params: { runId: a }, search: { vs: b } })
