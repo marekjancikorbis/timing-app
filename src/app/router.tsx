@@ -14,6 +14,7 @@ import { DrivePage } from '../features/live/DrivePage';
 import { isOnboarded, needsIosInstallHint, Onboarding } from '../features/onboarding/Onboarding';
 import { RoutesPage } from '../features/routes/RoutesPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
+import { ErrorScreen } from '../ui/ErrorScreen';
 import { InstallButton, PwaBanner } from '../ui/PwaBanner';
 import { settingsRepo } from './services';
 import { applyTheme } from './theme';
@@ -132,7 +133,10 @@ const routeTree = rootRoute.addChildren([
   runRoute,
   ...rest,
 ]);
-export const router = createRouter({ routeTree });
+export const router = createRouter({
+  routeTree,
+  defaultErrorComponent: ({ error, reset }) => <ErrorScreen error={error} reset={reset} />,
+});
 
 declare module '@tanstack/react-router' {
   interface Register {
