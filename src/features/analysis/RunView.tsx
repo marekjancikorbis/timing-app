@@ -233,7 +233,7 @@ export function RunView({
                     disabled={c === 'delta' && !reference?.trace}
                     aria-pressed={colorBy === c}
                     onClick={() => setColorBy(c)}
-                    className={`px-3 py-1 disabled:text-neutral-600 ${colorBy === c ? 'bg-amber-400 text-neutral-950' : 'bg-neutral-900'}`}
+                    className={`px-3 py-1 disabled:text-neutral-600 ${colorBy === c ? 'bg-amber-400 text-black' : 'bg-neutral-900'}`}
                   >
                     {c === 'delta' ? 'Gained / lost' : 'Speed'}
                   </button>

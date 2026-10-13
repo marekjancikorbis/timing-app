@@ -24,7 +24,7 @@ interface Props {
 }
 
 const seg = (on: boolean) =>
-  `px-4 py-2 ${on ? 'bg-amber-400 text-neutral-950' : 'bg-neutral-900 hover:bg-neutral-800'}`;
+  `px-4 py-2 ${on ? 'bg-amber-400 text-black' : 'bg-neutral-900 hover:bg-neutral-800'}`;
 
 const REASONS: Record<NonNullable<RunResult['invalidReason']>, string> = {
   'off-route': 'left the route',
@@ -103,7 +103,7 @@ function ArmScreen({
         <button
           type="button"
           onClick={() => void session.arm(mode, countdownS)}
-          className="w-full rounded bg-amber-400 py-4 text-xl font-semibold text-neutral-950"
+          className="w-full rounded bg-amber-400 py-4 text-xl font-semibold text-black"
         >
           Arm timer
         </button>
@@ -141,7 +141,7 @@ function ArmScreen({
             onStartTap?.();
             session.startCountdown();
           }}
-          className="h-32 w-full rounded-xl bg-green-600 text-4xl font-bold disabled:bg-neutral-800 disabled:text-neutral-500"
+          className="h-32 w-full rounded-xl bg-green-600 text-4xl text-white font-bold disabled:bg-neutral-800 disabled:text-neutral-500"
         >
           START
         </button>
@@ -190,7 +190,10 @@ function CountdownScreen({
   return (
     <section className="flex flex-col items-center gap-8 py-6">
       {s.live.jumpStart && (
-        <div role="alert" className="w-full rounded bg-red-600 py-3 text-center text-3xl font-bold">
+        <div
+          role="alert"
+          className="w-full rounded bg-red-600 text-white py-3 text-center text-3xl font-bold"
+        >
           JUMP START
         </div>
       )}
@@ -223,38 +226,47 @@ function LiveScreen({
   const elapsed = live.t0 === null ? null : now - live.t0;
   const lastLap = live.results.at(-1);
   return (
-    <section className="flex flex-col gap-5">
-      {(live.jumpStart || live.offRoute) && (
-        <div role="alert" className="rounded bg-red-600 py-2 text-center text-xl font-bold">
-          {live.jumpStart ? 'JUMP START' : 'OFF ROUTE'}
+    // Portrait: one column. Landscape (phone on its side in a mount): the gap and the clock on the
+    // left, sector details on the right, so nothing needs scrolling.
+    <section className="flex flex-col gap-5 landscape:grid landscape:grid-cols-2 landscape:items-center landscape:gap-x-8">
+      <div className="flex flex-col gap-5">
+        {(live.jumpStart || live.offRoute) && (
+          <div
+            role="alert"
+            className="rounded bg-red-600 text-white py-2 text-center text-xl font-bold"
+          >
+            {live.jumpStart ? 'JUMP START' : 'OFF ROUTE'}
+          </div>
+        )}
+        <DeltaBadge ms={live.gapMs} label="Gap" className="text-center text-8xl font-bold" />
+        <BigTimer ms={elapsed} className="text-center text-6xl" />
+      </div>
+      <div className="flex flex-col gap-5">
+        <div className="flex items-baseline justify-center gap-3 text-2xl">
+          <span className="text-neutral-400">
+            {live.lastSector ? `S${live.lastSector.index + 1}` : 'Sector'}
+          </span>
+          <DeltaBadge ms={live.lastSector?.deltaMs ?? null} label="Last sector" />
         </div>
-      )}
-      <DeltaBadge ms={live.gapMs} label="Gap" className="text-center text-8xl font-bold" />
-      <BigTimer ms={elapsed} className="text-center text-6xl" />
-      <div className="flex items-baseline justify-center gap-3 text-2xl">
-        <span className="text-neutral-400">
-          {live.lastSector ? `S${live.lastSector.index + 1}` : 'Sector'}
-        </span>
-        <DeltaBadge ms={live.lastSector?.deltaMs ?? null} label="Last sector" />
+        <SectorStrip sectors={live.sectors} />
+        <div className="flex justify-between text-lg text-neutral-300">
+          <span data-testid="speed">
+            {live.speedMps === null ? '–' : Math.round(live.speedMps * 3.6)} km/h
+          </span>
+          {live.lap > 0 && <span>Lap {live.lap}</span>}
+          <span>GPS {live.accuracyM === null ? '–' : `±${live.accuracyM.toFixed(0)} m`}</span>
+        </div>
+        {lastLap && (
+          <p className="text-center text-neutral-400">Last lap {formatTime(lastLap.totalMs)}</p>
+        )}
+        <button
+          type="button"
+          onClick={() => session.stop()}
+          className="mt-4 rounded border border-neutral-700 py-3 landscape:mt-0"
+        >
+          Stop
+        </button>
       </div>
-      <SectorStrip sectors={live.sectors} />
-      <div className="flex justify-between text-lg text-neutral-300">
-        <span data-testid="speed">
-          {live.speedMps === null ? '–' : Math.round(live.speedMps * 3.6)} km/h
-        </span>
-        {live.lap > 0 && <span>Lap {live.lap}</span>}
-        <span>GPS {live.accuracyM === null ? '–' : `±${live.accuracyM.toFixed(0)} m`}</span>
-      </div>
-      {lastLap && (
-        <p className="text-center text-neutral-400">Last lap {formatTime(lastLap.totalMs)}</p>
-      )}
-      <button
-        type="button"
-        onClick={() => session.stop()}
-        className="mt-4 rounded border border-neutral-700 py-3"
-      >
-        Stop
-      </button>
     </section>
   );
 }
@@ -292,7 +304,7 @@ function FinishScreen({
       <button
         type="button"
         onClick={() => void session.arm(choice.mode, choice.countdownS)}
-        className="w-full rounded bg-amber-400 py-4 text-xl font-semibold text-neutral-950"
+        className="w-full rounded bg-amber-400 py-4 text-xl font-semibold text-black"
       >
         Again
       </button>
@@ -335,7 +347,9 @@ export function DriveView({ route, session, clock, runsRepo, onStartTap }: Props
   }, [state, session]);
 
   return (
-    <div className="mx-auto max-w-xl space-y-6 p-4">
+    <div
+      className={`mx-auto space-y-6 p-4 ${state === 'running' ? 'max-w-xl landscape:max-w-5xl' : 'max-w-xl'}`}
+    >
       <h1 className="text-lg text-neutral-400">{route.name}</h1>
       {state === 'countdown' ? (
         <CountdownScreen s={s} session={session} clock={clock} />

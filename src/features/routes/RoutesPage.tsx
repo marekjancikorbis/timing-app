@@ -15,10 +15,7 @@ export function RoutesPage() {
     <div className="mx-auto max-w-3xl space-y-6 p-4">
       <header className="flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-2xl font-semibold">Routes</h1>
-        <Link
-          to="/routes/new"
-          className="rounded bg-amber-400 px-3 py-2 font-medium text-neutral-950"
-        >
+        <Link to="/routes/new" className="rounded bg-amber-400 px-3 py-2 font-medium text-black">
           New route
         </Link>
         <Link

@@ -53,7 +53,7 @@ export function RouteList({
                 onChange={(e) => setDraftName(e.target.value)}
                 className="flex-1 rounded border border-neutral-700 bg-neutral-900 px-2 py-1"
               />
-              <button type="submit" className="rounded bg-amber-400 px-3 py-1 text-neutral-950">
+              <button type="submit" className="rounded bg-amber-400 px-3 py-1 text-black">
                 Save
               </button>
               <button type="button" onClick={() => setEditing(null)} className="px-2 py-1">
@@ -73,7 +73,7 @@ export function RouteList({
                 <button
                   type="button"
                   onClick={() => onDrive(r.id)}
-                  className="rounded bg-amber-400 px-3 py-1 text-sm font-medium text-neutral-950"
+                  className="rounded bg-amber-400 px-3 py-1 text-sm font-medium text-black"
                 >
                   Drive
                 </button>
@@ -105,7 +105,7 @@ export function RouteList({
                       setConfirming(null);
                       onDelete(r.id);
                     }}
-                    className="rounded bg-red-600 px-2 py-1 text-sm"
+                    className="rounded bg-red-600 text-white px-2 py-1 text-sm"
                   >
                     Delete with all runs
                   </button>

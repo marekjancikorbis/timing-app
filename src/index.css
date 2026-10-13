@@ -1,7 +1,55 @@
 @import "tailwindcss";
 
+/*
+ * Themes (§4.9 Settings.theme, Phase 5). Components use Tailwind's neutral scale as "dark UI"
+ * colours (bg-neutral-950 = page, text-neutral-100 = text, text-neutral-400 = secondary). The light
+ * themes redefine that scale instead of every component: light inverts it, sunlight pushes it to
+ * the extremes (pure white page, pure black text, dark secondary text) for use in direct sun.
+ * Accents used as text get darker so they keep their contrast on white.
+ * Text on accent buttons uses text-black / text-white, which never change.
+ */
 :root {
   color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-neutral-950: oklch(98.5% 0 0);
+  --color-neutral-900: oklch(96% 0 0);
+  --color-neutral-800: oklch(91% 0 0);
+  --color-neutral-700: oklch(83% 0 0);
+  --color-neutral-600: oklch(74% 0 0);
+  --color-neutral-500: oklch(58% 0 0);
+  --color-neutral-400: oklch(45% 0 0);
+  --color-neutral-300: oklch(35% 0 0);
+  --color-neutral-200: oklch(26% 0 0);
+  --color-neutral-100: oklch(18% 0 0);
+  --color-neutral-50: oklch(12% 0 0);
+  --color-amber-400: oklch(66.6% 0.179 58.318);
+  --color-green-400: oklch(52.7% 0.154 150.069);
+  --color-red-400: oklch(50.5% 0.213 27.518);
+}
+
+:root[data-theme="sunlight"] {
+  color-scheme: light;
+  --color-neutral-950: oklch(100% 0 0);
+  --color-neutral-900: oklch(95% 0 0);
+  --color-neutral-800: oklch(88% 0 0);
+  --color-neutral-700: oklch(45% 0 0);
+  --color-neutral-600: oklch(38% 0 0);
+  --color-neutral-500: oklch(32% 0 0);
+  --color-neutral-400: oklch(22% 0 0);
+  --color-neutral-300: oklch(12% 0 0);
+  --color-neutral-200: oklch(6% 0 0);
+  --color-neutral-100: oklch(0% 0 0);
+  --color-neutral-50: oklch(0% 0 0);
+  --color-amber-400: oklch(55.5% 0.163 48.998);
+  --color-green-400: oklch(44.8% 0.119 151.328);
+  --color-red-400: oklch(44.4% 0.177 26.899);
+}
+
+:root[data-theme="sunlight"] body {
+  font-weight: 500;
 }
 
 html,
@@ -14,4 +62,10 @@ body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-variant-numeric: tabular-nums;
+}
+
+/* uPlot's legend and axis labels follow the theme's text colour. */
+.u-legend,
+.u-axis {
+  color: var(--color-neutral-300);
 }

@@ -23,7 +23,7 @@ import { snapToRoads } from './snap';
 const btn =
   'rounded border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800 disabled:opacity-40';
 const seg = (on: boolean) =>
-  `px-3 py-1.5 text-sm ${on ? 'bg-amber-400 text-neutral-950' : 'bg-neutral-900 hover:bg-neutral-800'}`;
+  `px-3 py-1.5 text-sm ${on ? 'bg-amber-400 text-black' : 'bg-neutral-900 hover:bg-neutral-800'}`;
 
 export function EditorPage({ routeId }: { routeId?: string }) {
   const [state, dispatch] = useReducer(editorReducer, undefined, () => initialEditorState());
@@ -136,7 +136,7 @@ export function EditorPage({ routeId }: { routeId?: string }) {
             <Link
               to="/drive/$routeId"
               params={{ routeId: state.routeId }}
-              className="ml-auto rounded bg-amber-400 px-3 py-1 text-sm font-medium text-neutral-950"
+              className="ml-auto rounded bg-amber-400 px-3 py-1 text-sm font-medium text-black"
             >
               Drive
             </Link>
@@ -315,7 +315,7 @@ export function EditorPage({ routeId }: { routeId?: string }) {
         {state.error && (
           <div
             role="alert"
-            className="flex items-start gap-2 rounded border border-red-700 bg-red-950 p-2 text-sm"
+            className="flex items-start gap-2 rounded border border-red-700 bg-red-950 p-2 text-red-50 text-sm"
           >
             <span className="flex-1">{state.error}</span>
             <button
@@ -333,7 +333,7 @@ export function EditorPage({ routeId }: { routeId?: string }) {
             type="button"
             disabled={blocker !== null || saving || !state.dirty}
             onClick={() => void save()}
-            className="w-full rounded bg-amber-400 px-3 py-2 font-medium text-neutral-950 disabled:opacity-40"
+            className="w-full rounded bg-amber-400 px-3 py-2 font-medium text-black disabled:opacity-40"
           >
             {saving ? 'Saving…' : state.routeId ? 'Save changes' : 'Save route'}
           </button>

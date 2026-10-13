@@ -3,6 +3,7 @@
 import 'uplot/dist/uPlot.min.css';
 import { useEffect, useRef } from 'react';
 import uPlot from 'uplot';
+import { cssColor, useTheme } from '../app/theme';
 
 export interface ChartSeries {
   label: string;
@@ -25,11 +26,14 @@ interface Props {
   'aria-label'?: string;
 }
 
-const AXIS = {
-  stroke: '#a3a3a3',
-  grid: { stroke: '#262626', width: 1 },
-  ticks: { stroke: '#404040', width: 1 },
-};
+/** Axis colours from the current theme (canvas can't read CSS variables by itself). */
+function axisStyle() {
+  return {
+    stroke: cssColor('--color-neutral-400', '#a3a3a3'),
+    grid: { stroke: cssColor('--color-neutral-800', '#262626'), width: 1 },
+    ticks: { stroke: cssColor('--color-neutral-700', '#404040'), width: 1 },
+  };
+}
 
 export function LineChart({
   x,
@@ -42,11 +46,13 @@ export function LineChart({
   'aria-label': ariaLabel,
 }: Props) {
   const box = useRef<HTMLDivElement>(null);
+  const theme = useTheme((s) => s.theme);
 
   useEffect(() => {
     const el = box.current;
     if (!el || x.length === 0) return;
     const fmt = formatY ?? ((v: number) => v.toFixed(1));
+    const AXIS = axisStyle();
     const opts: uPlot.Options = {
       width: Math.max(200, el.clientWidth),
       height,
@@ -85,7 +91,7 @@ export function LineChart({
                 if (y < u.bbox.top || y > u.bbox.top + u.bbox.height) return;
                 const ctx = u.ctx;
                 ctx.save();
-                ctx.strokeStyle = '#737373';
+                ctx.strokeStyle = cssColor('--color-neutral-500', '#737373');
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(u.bbox.left, y);
@@ -110,7 +116,8 @@ export function LineChart({
       ro.disconnect();
       plot.destroy();
     };
-  }, [x, series, yLabel, height, zeroLine, formatY]);
+    // theme: redraw with the new axis colours
+  }, [x, series, yLabel, height, zeroLine, formatY, theme]);
 
   if (x.length === 0) {
     return <p className="text-sm text-neutral-400">Not enough data for this chart.</p>;

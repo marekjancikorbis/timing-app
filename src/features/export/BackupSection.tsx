@@ -91,7 +91,7 @@ export function BackupSection({ onDownload, onRestore }: Props) {
               type="button"
               disabled={busy}
               onClick={() => void restore('merge')}
-              className="rounded bg-amber-400 px-3 py-1.5 text-sm text-neutral-950"
+              className="rounded bg-amber-400 px-3 py-1.5 text-sm text-black"
             >
               Add to my data
             </button>
@@ -99,7 +99,7 @@ export function BackupSection({ onDownload, onRestore }: Props) {
               type="button"
               disabled={busy}
               onClick={() => void restore('replace')}
-              className="rounded bg-red-600 px-3 py-1.5 text-sm"
+              className="rounded bg-red-600 text-white px-3 py-1.5 text-sm"
             >
               Replace all my data
             </button>

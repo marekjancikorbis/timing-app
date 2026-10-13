@@ -6,13 +6,16 @@ import {
   Outlet,
   useRouterState,
 } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { lazy, Suspense, useEffect } from 'react';
 import { LoggerPage } from '../features/gps-logger/LoggerPage';
 import { HistoryPage } from '../features/history/HistoryPage';
 import { DrivePage } from '../features/live/DrivePage';
 import { RoutesPage } from '../features/routes/RoutesPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { InstallButton, PwaBanner } from '../ui/PwaBanner';
+import { settingsRepo } from './services';
+import { applyTheme } from './theme';
 
 // Pages with the map (MapLibre) or charts (uPlot) load on demand, keeping the first load small.
 // The service worker precaches every chunk, so they still open offline.
@@ -27,10 +30,14 @@ const RunPage = lazy(() =>
 );
 
 const nav =
-  'rounded px-3 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800 [&.active]:bg-neutral-800 [&.active]:text-white';
+  'rounded px-3 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800 [&.active]:bg-neutral-800 [&.active]:text-neutral-50';
 
 function Layout() {
   const driving = useRouterState({ select: (s) => s.location.pathname.startsWith('/drive/') });
+  const theme = useLiveQuery(async () => (await settingsRepo.get()).theme, []);
+  useEffect(() => {
+    if (theme) applyTheme(theme);
+  }, [theme]);
   return (
     <div className="flex h-full flex-col">
       <PwaBanner quiet={driving} />

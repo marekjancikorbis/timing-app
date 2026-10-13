@@ -13,7 +13,7 @@ const CELL: Record<SectorColor, string> = {
 };
 
 const seg = (on: boolean) =>
-  `px-4 py-2 ${on ? 'bg-amber-400 text-neutral-950' : 'bg-neutral-900 hover:bg-neutral-800'}`;
+  `px-4 py-2 ${on ? 'bg-amber-400 text-black' : 'bg-neutral-900 hover:bg-neutral-800'}`;
 
 const dateTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -64,7 +64,7 @@ function SessionNotes({ session, onSave }: { session: Session; onSave: (notes: s
         onChange={(e) => setText(e.target.value)}
         className="flex-1 rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-sm"
       />
-      <button type="submit" className="rounded bg-amber-400 px-3 py-1 text-sm text-neutral-950">
+      <button type="submit" className="rounded bg-amber-400 px-3 py-1 text-sm text-black">
         Save
       </button>
     </form>
@@ -282,7 +282,7 @@ export function HistoryView({
                                   setPicked((p) => p.filter((x) => x !== r.id));
                                   onDeleteRun(r.id);
                                 }}
-                                className="rounded bg-red-600 px-2 py-0.5 text-xs"
+                                className="rounded bg-red-600 text-white px-2 py-0.5 text-xs"
                               >
                                 Delete
                               </button>

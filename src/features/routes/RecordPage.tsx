@@ -99,7 +99,7 @@ export function RecordPage() {
           <button
             type="button"
             onClick={() => void start()}
-            className="rounded bg-red-600 px-4 py-2 font-medium"
+            className="rounded bg-red-600 text-white px-4 py-2 font-medium"
           >
             {status.points ? 'Start over' : 'Start recording'}
           </button>
@@ -116,7 +116,7 @@ export function RecordPage() {
           type="button"
           disabled={status.points < 2}
           onClick={() => finish('auto')}
-          className="rounded bg-amber-400 px-4 py-2 font-medium text-neutral-950 disabled:opacity-40"
+          className="rounded bg-amber-400 px-4 py-2 font-medium text-black disabled:opacity-40"
         >
           Use as {status.lapClosed ? 'circuit' : 'stage'}
         </button>

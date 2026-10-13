@@ -37,6 +37,19 @@ export function SettingsPage() {
       </label>
 
       <label className="flex items-center justify-between gap-3">
+        <span>Theme</span>
+        <select
+          className={field}
+          value={settings.theme}
+          onChange={(e) => update({ theme: e.target.value as Settings['theme'] })}
+        >
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="sunlight">Sunlight (maximum contrast)</option>
+        </select>
+      </label>
+
+      <label className="flex items-center justify-between gap-3">
         <span>Audio callouts</span>
         <select
           className={field}

@@ -11,13 +11,13 @@ export function PwaBanner({ quiet }: { quiet: boolean }) {
     return (
       <div
         role="status"
-        className="flex flex-wrap items-center gap-2 bg-amber-400 px-3 py-2 text-sm text-neutral-950"
+        className="flex flex-wrap items-center gap-2 bg-amber-400 px-3 py-2 text-sm text-black"
       >
         <span className="mr-auto">A new version of Lap Timer is ready.</span>
         <button
           type="button"
           onClick={applyUpdate}
-          className="rounded bg-neutral-950 px-3 py-1 text-white"
+          className="rounded bg-black px-3 py-1 text-white"
         >
           Reload
         </button>

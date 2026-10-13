@@ -49,7 +49,7 @@ export function HistoryPage({ routeId }: { routeId: string }) {
         <Link
           to="/drive/$routeId"
           params={{ routeId }}
-          className="rounded bg-amber-400 px-3 py-2 font-medium text-neutral-950"
+          className="rounded bg-amber-400 px-3 py-2 font-medium text-black"
         >
           Drive
         </Link>

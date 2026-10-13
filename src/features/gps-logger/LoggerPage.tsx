@@ -106,7 +106,7 @@ export function LoggerPage() {
             <button
               type="button"
               onClick={() => void start()}
-              className="rounded bg-red-600 px-4 py-2 font-medium"
+              className="rounded bg-red-600 text-white px-4 py-2 font-medium"
             >
               Start logging
             </button>
