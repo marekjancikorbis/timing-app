@@ -68,6 +68,10 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    // MapLibre alone is ~1.2 MB and only loads with the map pages (lazy routes in router.tsx).
+    chunkSizeWarningLimit: 1300,
+  },
   test: {
     include: ['src/**/*.test.{ts,tsx}', 'tests/**/*.test.ts'],
     // The simulation-heavy suites (properties, accuracy) take several seconds per test when the

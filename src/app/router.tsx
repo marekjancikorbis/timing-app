@@ -6,15 +6,25 @@ import {
   Outlet,
   useRouterState,
 } from '@tanstack/react-router';
-import { RunPage } from '../features/analysis/RunPage';
-import { EditorPage } from '../features/editor/EditorPage';
+import { lazy, Suspense } from 'react';
 import { LoggerPage } from '../features/gps-logger/LoggerPage';
 import { HistoryPage } from '../features/history/HistoryPage';
 import { DrivePage } from '../features/live/DrivePage';
-import { RecordPage } from '../features/routes/RecordPage';
 import { RoutesPage } from '../features/routes/RoutesPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { InstallButton, PwaBanner } from '../ui/PwaBanner';
+
+// Pages with the map (MapLibre) or charts (uPlot) load on demand, keeping the first load small.
+// The service worker precaches every chunk, so they still open offline.
+const EditorPage = lazy(() =>
+  import('../features/editor/EditorPage').then((m) => ({ default: m.EditorPage })),
+);
+const RecordPage = lazy(() =>
+  import('../features/routes/RecordPage').then((m) => ({ default: m.RecordPage })),
+);
+const RunPage = lazy(() =>
+  import('../features/analysis/RunPage').then((m) => ({ default: m.RunPage })),
+);
 
 const nav =
   'rounded px-3 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800 [&.active]:bg-neutral-800 [&.active]:text-white';
@@ -40,7 +50,9 @@ function Layout() {
         </span>
       </nav>
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <Outlet />
+        <Suspense fallback={<p className="p-4 text-neutral-400">Loading…</p>}>
+          <Outlet />
+        </Suspense>
       </main>
       <footer className="border-t border-neutral-800 px-3 py-1 text-[11px] text-neutral-500">
         For closed tracks and closed roads only. Don't look at the screen while driving.
