@@ -5,36 +5,31 @@ For a fresh session continuing the lap timer. Read this, then `lap-timer-develop
 
 ## Where we are (2026-10-13)
 
-- **Phases 0–4 are done, green and deployed** to https://timing-app-mj.web.app (Firebase Hosting,
-  project `timing-app-mj`).
-- **Next: Phase 5, PWA hardening & polish** (plan §7). Not started.
+- **Phases 0–5 are done, green and deployed** to https://timing-app-mj.web.app (Firebase Hosting,
+  project `timing-app-mj`). That is the plan's **MVP**.
+- **Still open from the plan:** the field tests (Phase 0 GPS logs on the target phones, the Phase 3
+  exit criteria: a flying-start circuit and a standing-start stage, driven for real). Only the user
+  can do these. Their results may change thresholds (see NOTES.md "Things to settle with Phase 0
+  data").
+- **Next, if asked:** Phase 6+ optional extensions (plan §7): accounts and sync (Supabase), shared
+  routes and leaderboards, external Bluetooth GPS, Capacitor, accelerometer launch detection,
+  hands-free countdown, OSM raceway picker, video overlay. None started; pick with the user.
 
-## Phase 4 commits (all on `main`, pushed)
+## Commits
+
+Phase 4: 94cb7ce history · ab17527 run detail/compare · d9b2e4c reference choice (schema v2) ·
+ffdf96b export + backup · a7b5ca0 notes/deploy.
+
+Phase 5:
 
 | Commit | Feature |
 |---|---|
-| 94cb7ce | Route history page: sessions, bests, theoretical best, sector table |
-| ab17527 | Run detail and comparison: sectors, gap/speed charts (uPlot), coloured trace map |
-| d9b2e4c | Live reference choice (best / session best / pinned run), schema v2 |
-| ffdf96b | Export GPX/CSV, backup/restore (fflate + Zod) |
-
-## Phase 5 plan (next steps, in order)
-
-1. **Service worker + install**: `vite-plugin-pwa` (Workbox), precache the app shell, web app
-   manifest and icons, an install prompt. Runtime-cache OpenFreeMap tiles/styles (stale-while-
-   revalidate, capped) so saved routes' maps work offline. Firebase serves `index.html` with
-   `no-cache` already (firebase.json); keep `sw.js` uncached too.
-2. **Persistent storage**: ask with `navigator.storage.persist()` on first save, not only from the
-   Settings button (`requestPersistentStorage` in `src/data/db.ts`).
-3. **Bundle**: lazy-load the map/editor/analysis pages (main chunk is ~1.8 MB, mostly MapLibre).
-4. **Themes**: `Settings.theme` ('dark' | 'light' | 'sunlight') exists but is not applied yet.
-   Sunlight = maximum contrast for the live screen outdoors.
-5. **Landscape layout** for the live screen; **accessibility** pass; **onboarding** (first-run
-   explanation, GPS permission, the closed-roads disclaimer as an explicit acknowledgement).
-6. **Error monitoring**: the plan says Sentry with coordinates stripped. There is no Sentry DSN,
-   so build a small reporter with a scrub step (lat/lon removed) that can take a DSN later, and a
-   local error log viewable in Settings.
-7. Deploy, record the URL + date in NOTES.md "Deploys", refresh this file.
+| 0a223e9 | Installable offline PWA: service worker, manifest, icons, tile cache, persistent storage |
+| 0cdd95b | Lazy-load map and chart pages (first load 1.85 MB → 416 kB) |
+| 09700d6 | Dark / light / sunlight themes; landscape live screen |
+| 2cc8953 | First-run onboarding with the closed-roads acknowledgement |
+| 88eae34 | Accessibility pass: axe-core e2e in all themes, contrast fixes |
+| 95f1645 | Error monitoring: local scrubbed error log; Sentry only with `VITE_SENTRY_DSN` |
 
 ## Working rules (agreed with the managing session)
 
@@ -43,16 +38,19 @@ For a fresh session continuing the lap timer. Read this, then `lap-timer-develop
 - Commit each feature separately on `main` and `git push`. `dist/`, `test-results/` and
   `*.tsbuildinfo` are git-ignored.
 - After each phase: `npm run build && npx firebase deploy --only hosting`, check the Hosting URL,
-  record it in NOTES.md.
+  record it in NOTES.md "Deploys", refresh this file.
 
 ## Known issues / notes
 
-- The drive e2e (`e2e/drive.spec.ts`) is one long flow (import → drive → history → run → pin);
-  it has its own 90 s timeout and takes ~30 s.
-- uPlot calls `matchMedia` when imported; component tests that import charts stub it
-  (see `src/features/analysis/RunView.test.tsx`).
-- Field tests (Phase 0 logs, Phase 3 exit criteria) are still the user's to do; see NOTES.md
-  "Things to settle with Phase 0 data".
+- No Sentry DSN is configured, so errors are only logged on the device (Settings → Error log).
+  To turn on Sentry: build with `VITE_SENTRY_DSN=<dsn> npm run build`.
+- The e2e suite starts two servers (dev on 5199, production preview on 5198). The preview server
+  runs `vite build` first; `reuseExistingServer` is on outside CI, so stop a stale preview server
+  if a build change doesn't show up in `e2e/pwa.spec.ts`.
+- The drive e2e is one long flow (~30 s) with its own 90 s timeout.
+- uPlot calls `matchMedia` on import; component tests that import charts stub it.
+- e2e fixtures pre-accept onboarding (`onboarded: true`); use `test.use({ onboarded: false })` to
+  test first-run behaviour.
 
 ## Verify
 
