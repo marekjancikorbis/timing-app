@@ -1,6 +1,8 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { routesRepo, runsRepo } from '../../app/services';
+import { downloadFile } from '../../ui/download';
+import { runToCsv, runToGpx, safeFileName } from '../export/exporters';
 import { defaultReference } from './analysis';
 import { RunView } from './RunView';
 
@@ -48,7 +50,11 @@ export function RunPage({ runId, vs }: { runId: string; vs?: string }) {
   }
 
   const { route, pinned } = data;
-  const { run } = data.current;
+  const { run, trace } = data.current;
+  const fileBase = safeFileName(
+    `${route.name} ${new Date(run.startTime).toISOString().slice(0, 16)}`,
+  );
+  const btn = 'rounded border border-neutral-700 px-3 py-2 hover:bg-neutral-800';
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">
       <header className="flex flex-wrap items-center gap-3">
@@ -86,6 +92,30 @@ export function RunPage({ runId, vs }: { runId: string; vs?: string }) {
               >
                 Pin as live reference
               </button>
+            )}
+            {trace && (
+              <>
+                <button
+                  type="button"
+                  className={btn}
+                  onClick={() =>
+                    downloadFile(
+                      `${fileBase}.gpx`,
+                      runToGpx(run, trace, route.name),
+                      'application/gpx+xml',
+                    )
+                  }
+                >
+                  Export GPX
+                </button>
+                <button
+                  type="button"
+                  className={btn}
+                  onClick={() => downloadFile(`${fileBase}.csv`, runToCsv(run, trace), 'text/csv')}
+                >
+                  Export CSV
+                </button>
+              </>
             )}
           </div>
         }

@@ -1,8 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
-import { settingsRepo } from '../../app/services';
+import { db, settingsRepo } from '../../app/services';
 import { requestPersistentStorage } from '../../data/db';
 import type { Settings } from '../../data/types';
+import { downloadFile } from '../../ui/download';
+import { BackupSection } from '../export/BackupSection';
+import { backupFileName, createBackup, encodeBackup, restoreBackup } from '../export/backup';
 
 const field = 'rounded border border-neutral-700 bg-neutral-900 px-2 py-1';
 
@@ -100,6 +103,13 @@ export function SettingsPage() {
           </p>
         )}
       </div>
+
+      <BackupSection
+        onDownload={async () =>
+          downloadFile(backupFileName(), encodeBackup(await createBackup(db)), 'application/gzip')
+        }
+        onRestore={(backup, mode) => restoreBackup(db, backup, mode)}
+      />
     </div>
   );
 }

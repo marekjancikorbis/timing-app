@@ -1,6 +1,8 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { routesRepo, runsRepo } from '../../app/services';
+import { downloadFile } from '../../ui/download';
+import { historyToCsv, routeToGpx, safeFileName } from '../export/exporters';
 import { HistoryView } from './HistoryView';
 
 /** Thin shell: loads the route's runs and sessions live from Dexie. */
@@ -58,6 +60,32 @@ export function HistoryPage({ routeId }: { routeId: string }) {
         >
           Edit route
         </Link>
+        <button
+          type="button"
+          onClick={() =>
+            downloadFile(
+              `${safeFileName(route.name)} history.csv`,
+              historyToCsv(route, runs),
+              'text/csv',
+            )
+          }
+          className="rounded border border-neutral-700 px-3 py-2 hover:bg-neutral-800"
+        >
+          Export CSV
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            downloadFile(
+              `${safeFileName(route.name)}.gpx`,
+              routeToGpx(route),
+              'application/gpx+xml',
+            )
+          }
+          className="rounded border border-neutral-700 px-3 py-2 hover:bg-neutral-800"
+        >
+          Route GPX
+        </button>
       </header>
       <HistoryView
         route={route}
