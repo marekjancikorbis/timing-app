@@ -1,0 +1,7 @@
+# Always store and check out text files with LF, regardless of core.autocrlf
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
