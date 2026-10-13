@@ -13,15 +13,21 @@ const LOCAL_STYLE = {
 interface Fixtures {
   /** Serve LOCAL_STYLE instead of aborting the style request. */
   localMapStyle: boolean;
+  /** Start as a returning user: the first-run welcome is already accepted. */
+  onboarded: boolean;
   /** Problems seen during the test; the test fails if any remain. */
   problems: string[];
 }
 
 export const test = base.extend<Fixtures>({
   localMapStyle: [false, { option: true }],
+  onboarded: [true, { option: true }],
   problems: [
-    async ({ page, localMapStyle }, use) => {
+    async ({ page, localMapStyle, onboarded }, use) => {
       const problems: string[] = [];
+      if (onboarded) {
+        await page.addInitScript(() => localStorage.setItem('laptimer-onboarded', '1'));
+      }
       await page.route(`**/${TILE_HOST}/**`, (route) =>
         localMapStyle && route.request().url().includes('/styles/')
           ? route.fulfill({ json: LOCAL_STYLE })

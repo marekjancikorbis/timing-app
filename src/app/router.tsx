@@ -7,10 +7,11 @@ import {
   useRouterState,
 } from '@tanstack/react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { LoggerPage } from '../features/gps-logger/LoggerPage';
 import { HistoryPage } from '../features/history/HistoryPage';
 import { DrivePage } from '../features/live/DrivePage';
+import { isOnboarded, needsIosInstallHint, Onboarding } from '../features/onboarding/Onboarding';
 import { RoutesPage } from '../features/routes/RoutesPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { InstallButton, PwaBanner } from '../ui/PwaBanner';
@@ -38,6 +39,7 @@ function Layout() {
   useEffect(() => {
     if (theme) applyTheme(theme);
   }, [theme]);
+  const [onboarded, setOnboarded] = useState(isOnboarded);
   return (
     <div className="flex h-full flex-col">
       <PwaBanner quiet={driving} />
@@ -57,9 +59,13 @@ function Layout() {
         </span>
       </nav>
       <main className="min-h-0 flex-1 overflow-y-auto">
-        <Suspense fallback={<p className="p-4 text-neutral-400">Loading…</p>}>
-          <Outlet />
-        </Suspense>
+        {onboarded ? (
+          <Suspense fallback={<p className="p-4 text-neutral-400">Loading…</p>}>
+            <Outlet />
+          </Suspense>
+        ) : (
+          <Onboarding onDone={() => setOnboarded(true)} iosHint={needsIosInstallHint()} />
+        )}
       </main>
       <footer className="border-t border-neutral-800 px-3 py-1 text-[11px] text-neutral-500">
         For closed tracks and closed roads only. Don't look at the screen while driving.
